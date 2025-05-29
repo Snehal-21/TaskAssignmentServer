@@ -1,8 +1,16 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const taskSchema = new mongoose.Schema({
-  title: String,
-  description: String,
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  description: {
+    type: String,
+    required: true,
+    trim: true
+  },
   status: {
     type: String,
     enum: ['pending', 'in_progress', 'completed'],
@@ -13,12 +21,31 @@ const taskSchema = new mongoose.Schema({
     enum: ['low', 'medium', 'high'],
     default: 'medium'
   },
-  dueDate: Date,
-  reminderAt: Date,
-  assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  dueDate: {
+    type: Date,
+    required: true
+  },
+  reminderAt: {
+    type: Date,
+    required: true
+  },
+  assignedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  }
+}, {
+  timestamps: true
 });
 
-const Task = mongoose.model('Task', taskSchema);
+// Index for efficient querying
+taskSchema.index({ assignedTo: 1, status: 1 });
+taskSchema.index({ dueDate: 1 });
+taskSchema.index({ reminderAt: 1 });
 
-export default Task;
+module.exports = mongoose.model('Task', taskSchema); 
