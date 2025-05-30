@@ -6,32 +6,22 @@ const User = require('../models/User');
 const { authenticate } = require('../middleware/auth');
 
 // Register new user
-router.post('/register', [
-  body('email').isEmail().normalizeEmail(),
-  body('password').isLength({ min: 6 }),
-  body('name').trim().notEmpty(),
-  body('role').isIn(['admin', 'manager', 'user'])
-], async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { email, password, name, role } = req.body;
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
+    const { email, password, name } = req.body;
+console.log(req.body,"jjjjj")
+// Check if user already exists
+const existingUser = await User.findOne({ email });
+if (existingUser) {
+  return res.status(400).json({ message: 'User already exists' });
+}
+console.log(req.body,"jjjjj")
 
     // Create new user
     const user = new User({
       email,
       password,
-      name,
-      role
+      name
     });
 
     await user.save();
@@ -43,16 +33,18 @@ router.post('/register', [
       { expiresIn: '24h' }
     );
 
-    res.status(201).json({
+   return res.status(201).json({
       token,
       user: {
         id: user._id,
         email: user.email,
         name: user.name,
         role: user.role
-      }
+      },
+      message:"user register successfully."
     });
   } catch (error) {
+    console.log(error,"eeeeeeeeeeeeee")
     res.status(500).json({ message: 'Server error',error:error });
   }
 });
