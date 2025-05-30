@@ -57,6 +57,29 @@ router.patch('/:id/role', [
   }
 });
 
+// delete user form website
+
+router.delete('/:id', [
+  authenticate,
+  authorize('admin') // Only admins can delete users
+], async (req, res) => {
+  try {
+    console.log("jjjjjjjj")
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 // Assign manager to user (admin only)
 router.patch('/:id/manager', [
   authenticate,
