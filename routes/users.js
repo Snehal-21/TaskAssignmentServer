@@ -16,6 +16,17 @@ router.get('/', [authenticate, authorize('admin')], async (req, res) => {
   }
 });
 
+// Get all users with role 'user' (admin and manager only)
+router.get('/available', [authenticate, authorize('admin', 'manager')], async (req, res) => {
+  try {
+    const users = await User.find({ role: 'user' })
+      .select('-password')
+      .populate('managerId', 'name email');
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 // Get users under management (for managers)
 router.get('/managed', authenticate, async (req, res) => {
   try {
