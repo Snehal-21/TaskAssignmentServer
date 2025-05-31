@@ -50,7 +50,10 @@ exports.isManagerOfAssignee = async (req, res, next) => {
       return next();
     }
 
-    if (req.user.role === 'manager' && task.assignedTo.managerId?.toString() === req.user._id.toString()) {
+    if (req.user.role === 'manager') {
+      return next();
+    }
+    if (req.user.role === 'user') {
       return next();
     }
 

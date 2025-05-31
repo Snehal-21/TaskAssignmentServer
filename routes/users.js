@@ -19,6 +19,7 @@ router.get('/', [authenticate, authorize('admin')], async (req, res) => {
 // Get all users with role 'user' (admin and manager only)
 router.get('/available', [authenticate, authorize('admin', 'manager')], async (req, res) => {
   try {
+   
     const users = await User.find({ role: 'user' })
       .select('-password')
       .populate('managerId', 'name email');
