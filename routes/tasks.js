@@ -105,10 +105,6 @@ router.post('/', [
       return res.status(404).json({ message: 'Assigned user not found' });
     }
 
-    // if (req.user.role === 'manager' && assignedUser.managerId?.toString() !== req.user._id.toString()) {
-    //   return res.status(403).json({ message: 'You can only assign tasks to users under your management' });
-    // }
-
     const task = new Task({
       title,
       description,
@@ -116,14 +112,11 @@ router.post('/', [
       reminderAt,
       priority,
       assignedTo,
-      createdBy: req.user._id
+      createdBy: req.user._id,
+      reminderSent: false
     });
 
     await task.save();
-
-    // Send initial reminder email to the assigned user
-    await sendReminderEmail(task, assignedUser);
-
     res.status(201).json(task);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });

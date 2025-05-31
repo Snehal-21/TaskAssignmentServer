@@ -29,6 +29,10 @@ const taskSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
+  reminderSent: {
+    type: Boolean,
+    default: false
+  },
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -47,5 +51,6 @@ const taskSchema = new mongoose.Schema({
 taskSchema.index({ assignedTo: 1, status: 1 });
 taskSchema.index({ dueDate: 1 });
 taskSchema.index({ reminderAt: 1 });
+taskSchema.index({ reminderSent: 1 });
 
 module.exports = mongoose.model('Task', taskSchema); 
