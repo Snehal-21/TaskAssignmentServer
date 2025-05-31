@@ -2,7 +2,8 @@ const cron = require('node-cron');
 const nodemailer = require('nodemailer');
 const Task = require('../models/Task');
 const User = require('../models/User');
-
+const dotenv = require('dotenv');
+dotenv.config();
 // Create email transporter
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -71,5 +72,6 @@ const startReminderService = () => {
 };
 
 module.exports = {
-  startReminderService
-}; 
+  startReminderService,
+  sendReminderEmail
+};

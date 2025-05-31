@@ -4,6 +4,7 @@ const { body, validationResult } = require('express-validator');
 const Task = require('../models/Task');
 const User = require('../models/User');
 const { authenticate, authorize, isManagerOfAssignee } = require('../middleware/auth');
+const { sendReminderEmail } = require('../services/reminderService');
 
 // Get all tasks (filtered by role)
 router.get('/', authenticate, async (req, res) => {
@@ -65,9 +66,9 @@ router.post('/', [
       return res.status(404).json({ message: 'Assigned user not found' });
     }
 
-    if (req.user.role === 'manager' && assignedUser.managerId?.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'You can only assign tasks to users under your management' });
-    }
+    // if (req.user.role === 'manager' && assignedUser.managerId?.toString() !== req.user._id.toString()) {
+    //   return res.status(403).json({ message: 'You can only assign tasks to users under your management' });
+    // }
 
     const task = new Task({
       title,
@@ -80,6 +81,9 @@ router.post('/', [
     });
 
     await task.save();
+
+    // Send initial reminder email to the assigned user
+    await sendReminderEmail(task, assignedUser);
 
     res.status(201).json(task);
   } catch (error) {
@@ -148,9 +152,9 @@ router.patch('/:id/status', [
     }
 
     // Check if user is assigned to the task
-    if (task.assignedTo.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'You can only update tasks assigned to you' });
-    }
+    // if (task.assignedTo.toString() !== req.user._id.toString()) {
+    //   return res.status(403).json({ message: 'You can only update tasks assigned to you' });
+    // }
 
     task.status = req.body.status;
     await task.save();
