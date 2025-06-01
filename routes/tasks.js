@@ -4,43 +4,7 @@ const { body, validationResult } = require('express-validator');
 const Task = require('../models/Task');
 const User = require('../models/User');
 const { authenticate, authorize, isManagerOfAssignee } = require('../middleware/auth');
-const { sendReminderEmail } = require('../services/reminderService');
-
-// Get all tasks (filtered by role)
-// router.get('/', authenticate, async (req, res) => {
-//   try {
-//     let query = {};
-//     console.log("uuu",req.user)
-//     // Filter based on user role
-//     if (req.user.role === 'user') {
-//       query.assignedTo = req.user._id;
-//     } else if (req.user.role === 'manager') {
-//       const managedUsers = await User.find({ managerId: req.user._id });
-//       query.assignedTo = { $in: managedUsers.map(user => user._id) };
-//     }
-
-//     // Apply filters from query params
-//     if (req.query.status) {
-//       query.status = req.query.status;
-//     }
-//     if (req.query.priority) {
-//       query.priority = req.query.priority;
-//     }
-//     if (req.query.dueDate) {
-//       query.dueDate = { $lte: new Date(req.query.dueDate) };
-//     }
-
-//     const tasks = await Task.find(query)
-//       .populate('assignedTo', 'name email')
-//       .populate('createdBy', 'name email')
-//       .sort({ dueDate: 1 });
-
-//     res.json(tasks);
-//   } catch (error) {
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// });
-
+const { sendReminderEmail, sendTaskAssignmentEmail } = require('../services/reminderService');
 
 router.get('/', authenticate, async (req, res) => {
   try {
@@ -117,8 +81,13 @@ router.post('/', [
     });
 
     await task.save();
+
+    // Send task assignment email
+    await sendTaskAssignmentEmail(task, assignedUser, req.user);
+
     res.status(201).json(task);
   } catch (error) {
+    console.error('Error creating task:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
