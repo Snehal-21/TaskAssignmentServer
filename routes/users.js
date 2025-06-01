@@ -3,18 +3,48 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { authenticate, authorize } = require('../middleware/auth');
+const Task = require('../models/Task');
 
 // Get all users (admin only)
-router.get('/', [authenticate, authorize('admin')], async (req, res) => {
+
+router.get('/', authenticate, async (req, res) => {
+  console.log(req.user.role, "todaysconsole");
+  const role = req.user.role;
+  const userId = req.user._id;
+
   try {
-    const users = await User.find()
-      .select('-password')
-      .populate('managerId', 'name email');
-    res.json(users);
+    if (role === 'admin') {
+      // ✅ Admin logic (unchanged)
+      const users = await User.find()
+        .select('-password')
+        .populate('managerId', 'name email');
+      return res.json(users);
+    }
+
+    if (role === 'manager') {
+      // 🔄 New logic for managers
+      const tasks = await Task.find({ createdBy: userId }).select('assignedTo');
+      
+      const assignedUserIds = tasks.map(task => task.assignedTo.toString());
+
+      // Remove duplicates
+      const uniqueUserIds = [...new Set(assignedUserIds)];
+
+      // Fetch user details (excluding password)
+      const users = await User.find({ _id: { $in: uniqueUserIds } }).select('-password');
+
+      return res.json(users);
+    }
+
+    // 🚫 For other roles
+    return res.status(403).json({ message: 'Access denied' });
+
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // Get all users with role 'user' (admin and manager only)
 router.get('/available', [authenticate, authorize('admin', 'manager')], async (req, res) => {
